@@ -1,3 +1,7 @@
+#! /usr/bin/fish
+
+set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+
 cd /
 pacman -Q > pacQ.lst
 pacman -Qm > pacQm.lst
@@ -5,7 +9,7 @@ pacman -Qqe > pacQqe.lst
 mount /dev/sda3 /mnt
 cd /mnt/\@manjaro
 rsync -a --del /boot/ \@/boot/
-btrfs subvolume snapshot -r \@home \@home.$(date +%Y-v%W-%u-%A-%H.%M.%S)
-btrfs subvolume snapshot -r \@ \@root.$(date +%Y-v%W-%u-%A-%H.%M.%S)
+btrfs subvolume snapshot -r \@home \@home.$weekstamp
+btrfs subvolume snapshot -r \@ \@root.$weekstamp
 cd
 umount /mnt

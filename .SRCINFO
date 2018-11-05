@@ -1,15 +1,16 @@
 pkgbase = quicksave
 	pkgdesc = Save before doing something stupid
-	pkgver = 1.0
+	pkgver = 1.2
 	pkgrel = 1
 	url = https://github.com/mbloms/quicksave
 	arch = any
 	license = Unlicense
 	depends = btrfs-progs
 	depends = rsync
-	source = https://github.com/mbloms/quicksave/archive/v1.0.tar.gz
+	depends = fish
+	source = quicksave
 	source = LICENSE
-	md5sums = 9dfd333ce421524d8e9fdb9043dc424f
+	md5sums = 5d093512a3a1c7f4472630102ebb08ad
 	md5sums = d88e9e08385d2a17052dac348bde4bc1
 
 pkgname = quicksave
