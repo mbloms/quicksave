@@ -1,0 +1,9 @@
+#! /usr/bin/fish
+
+set vol $argv[1]
+set year $argv[2]
+set week $argv[3]
+
+for snap in (ls -d1 @$vol.$year-v$week-* | head -n-1 | tail -n+2)
+    btrfs subv del $snap
+end

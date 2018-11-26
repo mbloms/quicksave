@@ -1,0 +1,22 @@
+#! /usr/bin/fish
+
+set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+
+set vol $argv[1]
+
+set --erase argv[1]
+
+for snap in $argv
+    echo "$base -> $snap"
+    btrfs send -p $base $snap | btrfs receive /run/media/micke/Maxtor/
+    set succ $status
+    if test $succ -ne 0
+        echo $succ
+        exit $succ
+    end
+    set base $snap
+end
+
+
+btrfs subvolume snapshot -r \@home \@home.head.$weekstamp
+btrfs subvolume snapshot -r \@ \@root.head.$weekstamp
