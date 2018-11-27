@@ -35,6 +35,11 @@ for vol in $vols
         echo "\"$vol\" is not a directory."
         exit 1
     end
+
+    if not test -d @heads
+        echo "@heads is not a directory."
+        exit 1
+    end
     
     set head $vol.head
     set snap "@heads/$vol.head.$weekstamp"
