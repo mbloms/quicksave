@@ -10,7 +10,7 @@ depends=('btrfs-progs'
 url="https://github.com/mbloms/quicksave"
 source=('quicksave'
 	'LICENSE')
-md5sums=('389c0731a9ee19e2a49cc3cb0b32cb97'
+md5sums=('fa587f3a9c7e3ea0075ab80d5a031f48'
          'd88e9e08385d2a17052dac348bde4bc1')
 
 package() {
