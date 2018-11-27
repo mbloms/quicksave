@@ -11,6 +11,7 @@ cd /mnt/\@manjaro
 rsync -a --del /boot/ \@boot/
 btrfs subvolume snapshot -r \@ \@root.$weekstamp
 for snap in @boot @home @var
-btrfs subvolume snapshot -r $snap $snap.$weekstamp
+    btrfs subvolume snapshot -r $snap $snap.$weekstamp
+end
 cd
 umount /mnt
