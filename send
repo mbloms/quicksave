@@ -1,22 +1,53 @@
 #! /usr/bin/fish
 
-set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+set target /run/media/micke/Maxtor
 
-set vol $argv[1]
+set vol (string split . $argv[1])[1]
 
-set --erase argv[1]
+if not test -d $vol
+    echo "\"$vol\" is not a directory."
+    exit 1
+end
+
+set head $vol.head
+
+if not test -s $head
+    echo "\"$head\" is not a symbolic link."
+    exit 1
+end
+
+set base $head
 
 for snap in $argv
     echo "$base -> $snap"
-    btrfs send -p $base $snap | btrfs receive /run/media/micke/Maxtor/
-    set succ $status
-    if test $succ -ne 0
-        echo $succ
-        exit $succ
+
+    # Unless target exists
+    if test -d $target/$snap
+        echo "Skipping \"$snap\", target already exists."
+    else
+        switch $snap
+        case $vol.20'*'
+            btrfs send -p $base $snap | btrfs receive $target
+        case '*'
+            echo "Error: incorrect subvolume"
+            exit 1
+        end
+        set succ $status
+        if test $succ -ne 0
+            echo $succ
+            exit $succ
+        end
+        set base $snap
+        echo
     end
-    set base $snap
 end
 
+set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+set head "@heads/$vol.head.$weekstamp"
 
-btrfs subvolume snapshot -r \@home \@home.head.$weekstamp
-btrfs subvolume snapshot -r \@ \@root.head.$weekstamp
+btrfs subvolume snapshot -r $vol $head
+btrfs send -p $base $head | btrfs receive $target
+
+if test $status -eq 0
+    ln -sfT (pwd)/$head $vol.head
+end
