@@ -8,7 +8,14 @@ for snap in $argv
 
     set vol (string split . $snap)[1]
     
-    set head $vol.head
+    set head $target/$vol.received
+
+    if not test -s $head
+        # Borde va stderr
+        echo "\"$head\" is not a symbolic link."
+        set head $vol.head
+        echo "Trying $head instead."
+    end
     
     if not test -s $head
         echo "\"$head\" is not a symbolic link."
@@ -22,6 +29,7 @@ for snap in $argv
     end
 
     ln -sfT $snap $vol.head
+    ln -sfT (pwd)/$snap $target/$vol.received
 
     set vols $vols $vol
 
