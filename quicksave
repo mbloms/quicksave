@@ -9,8 +9,7 @@ pacman -Qqe > pacQqe.lst
 mount /dev/sda3 /mnt
 cd /mnt/\@manjaro
 rsync -a --del /boot/ \@boot/
-btrfs subvolume snapshot -r \@ \@root.$weekstamp
-for snap in @boot @home @var
+for snap in @root @var @boot @home
     btrfs subvolume snapshot -r $snap $snap.$weekstamp
 end
 cd
