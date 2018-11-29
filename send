@@ -18,6 +18,7 @@ for snap in $argv
     end
     
     if not test -s $head
+        # Borde va stderr
         echo "\"$head\" is not a symbolic link."
         exit 1
     end
