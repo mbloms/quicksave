@@ -1,6 +1,6 @@
 #! /usr/bin/fish
 
-set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+set weekstamp (date +%Y-v%W-%u-%a-%H.%M.%S)
 
 cd /
 pacman -Q > pacQ.lst
