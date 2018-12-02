@@ -1,6 +1,12 @@
 #! /usr/bin/fish
 
-set weekstamp (date +%Y-v%W-%u-%a-%H.%M.%S)
+set weekstamp (date +%Y-v%V-%u-%a-%H.%M.%S)
+
+if set -q argv[1]
+for snap in $argv
+    btrfs subvolume snapshot -r $snap $snap.$weekstamp
+end
+else
 
 cd /
 pacman -Q > pacQ.lst
@@ -9,8 +15,11 @@ pacman -Qqe > pacQqe.lst
 mount /dev/sda3 /mnt
 cd /mnt/\@manjaro
 rsync -a --del /boot/ \@boot/
-for snap in @root @var @boot @home
+for snap in @root @var @boot @home ../@data
     btrfs subvolume snapshot -r $snap $snap.$weekstamp
 end
+
 cd
 umount /mnt
+
+end
