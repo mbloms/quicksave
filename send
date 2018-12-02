@@ -1,6 +1,6 @@
 #! /usr/bin/fish
 
-set target $argv[1]
+set target (string trim -rc / $argv[1])
 
 set --erase argv[1]
 

@@ -4,6 +4,7 @@ set weekstamp (date +%Y-v%V-%u-%a-%H.%M.%S)
 
 if set -q argv[1]
 for snap in $argv
+    set snap (string trim -rc / $snap)
     btrfs subvolume snapshot -r $snap $snap.$weekstamp
 end
 else

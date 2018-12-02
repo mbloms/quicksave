@@ -1,5 +1,5 @@
 pkgname=quicksave
-pkgver=1.3
+pkgver=1.4
 pkgrel=1
 pkgdesc='Save before doing something stupid'
 arch=('any')
@@ -10,7 +10,7 @@ depends=('btrfs-progs'
 url="https://github.com/mbloms/quicksave"
 source=('quicksave'
 	'LICENSE')
-md5sums=('b9ae91d2591689b7abb09072f1c0c548'
+md5sums=('76395fce6d5ffdb583671630493a9f13'
          'd88e9e08385d2a17052dac348bde4bc1')
 
 package() {
