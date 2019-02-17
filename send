@@ -36,7 +36,7 @@ for snap in $argv
 
 end
 
-set weekstamp (date +%Y-v%W-%u-%A-%H.%M.%S)
+set weekstamp (date +%Y-v%V-%u-%a-%H.%M.%S)
 
 for vol in $vols
 
