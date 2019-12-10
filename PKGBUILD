@@ -6,6 +6,7 @@ arch=('any')
 license=('Unlicense')
 depends=('btrfs-progs'
          'rsync'
+         'pv'
          'fish')
 url="https://github.com/mbloms/quicksave"
 source=('quicksave'
@@ -15,5 +16,6 @@ md5sums=('fd15782dd2b0bdc8a70c569d73285eb3'
 
 package() {
   install -Dm755 $pkgname "${pkgdir}/usr/bin/${pkgname}"
+  install -Dm755 $pkgname "${pkgdir}/usr/bin/send"
   install -Dm444 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
