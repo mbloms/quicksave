@@ -1,8 +1,22 @@
 #! /usr/bin/fish
 
-set target (string trim -rc / $argv[1])
+argparse --name=nsend -x bootstrap,received -N 1 'd/dest=' 'b/bootstrap' 'r/received=' -- $argv
 
-set --erase argv[1]
+if not set -q _flag_d
+    echo "missing destination, did you mean '--dest $argv[1] $argv[2]..'?" >&2
+    exit 1
+end
+
+if set -q _flag_r
+    echo "'--received' argument not yet implemented.." >&2
+    exit 1
+end
+
+set target (string trim -rc / $_flag_d)
+
+if set -q _flag_b
+    echo bootstrap = $_flag_b
+end
 
 for snap in $argv
 
@@ -11,19 +25,21 @@ for snap in $argv
     set head $target/$vol.received
 
     if not test -s $head
-        # Borde va stderr
-        echo "\"$head\" is not a symbolic link."
+        echo "'$head' is not a symbolic link." >&2
         set head $vol.head
-        echo "Trying $head instead."
+        echo "Trying $head instead." >&2
     end
     
-    if not test -s $head
-        # Borde va stderr
-        echo "\"$head\" is not a symbolic link."
+    if test -s $head
+        btrfs send -p $head $snap | btrfs receive $target
+    else if set -q _flag_b
+        echo "Bootstrapping by sending $snap..." >&2
+        btrfs send $snap | btrfs receive $target
+    else
+	echo "'$head' is not a symbolic link." >&2
         exit 1
     end
     
-    btrfs send -p $head $snap | btrfs receive $target
     set succ $status
     if test $succ -ne 0
         exit $succ
