@@ -39,6 +39,11 @@ end
 
 for snap in $argv
 
+    if not test -e $snap
+        echo "'$snap' does not exist" >&2
+        exit 1
+    end
+
     set vol (string split . $snap)[1]
     
     if set -q _flag_s
