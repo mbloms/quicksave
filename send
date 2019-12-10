@@ -12,9 +12,13 @@ else
 end
 
 if set -q _flag_s
-    if ssh -i /home/micke/.ssh/id_rsa $_flag_s test -d $target
+    ssh -o ConnectTimeout=4 -i /home/micke/.ssh/id_rsa $_flag_s test -d $target
+    switch $status
+    case 0
         set ssh "ssh -i /home/micke/.ssh/id_rsa $_flag_s sudo -n"
-    else
+    case 255
+        exit 1
+    case '*'
         echo "Could not find '$target' on '$_flag_s'."
         exit 1
     end
