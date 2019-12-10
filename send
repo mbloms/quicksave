@@ -1,6 +1,32 @@
 #! /usr/bin/fish
 
-argparse --name=nsend -x bootstrap,received -N 1 'd/dest=' 'b/bootstrap' 'r/received=' -- $argv
+argparse --name=nsend -x bootstrap,received -N 1 's/ssh=' 'd/dest=' 'b/bootstrap' 'r/received=' 'p/progress=?' -- $argv
+
+set -x pid %self
+
+sudo -v
+
+while true; sudo -n true; sleep 1; kill -0 $pid 2>/dev/null || exit; end &
+
+while true
+    echo I am g..
+    sudo -n whoami || exit 1
+    sleep 10
+end
+
+exit
+
+if set -q _flag_p
+    set pipe "| pv -W$_flag_p |"
+else
+    set pipe "|"
+end
+
+if set -q _flag_s
+    set ssh "ssh $_flag_s"
+else
+    set ssh ""
+end
 
 if not set -q _flag_d
     echo "missing destination, did you mean '--dest $argv[1] $argv[2]..'?" >&2
@@ -14,27 +40,35 @@ end
 
 set target (string trim -rc / $_flag_d)
 
-if set -q _flag_b
-    echo bootstrap = $_flag_b
-end
-
 for snap in $argv
 
     set vol (string split . $snap)[1]
     
-    set head $target/$vol.received
+    if set -q _flag_s
+        # We can't use symlinks over ssh
+        set head $vol.ssh.$_flag_s
+    else
+        set head $target/$vol.received
 
-    if not test -s $head
-        echo "'$head' is not a symbolic link." >&2
-        set head $vol.head
-        echo "Trying $head instead." >&2
+        if not test -s $head
+            echo "'$head' is not a symbolic link." >&2
+            set head $vol.head
+            echo "Trying $head instead." >&2
+        end
     end
     
     if test -s $head
-        btrfs send -p $head $snap | btrfs receive $target
+        eval btrfs send -p $head $snap $pipe $ssh btrfs sudo -n receive $target
     else if set -q _flag_b
         echo "Bootstrapping by sending $snap..." >&2
-        btrfs send $snap | btrfs receive $target
+
+        eval btrfs send $snap $pipe $ssh btrfs sudo -n receive $target
+        ln -sfT $snap $vol.head
+        if set -q _flag_s
+            ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
+        else
+            ln -sfT (pwd)/$snap $target/$vol.received
+        end
     else
 	echo "'$head' is not a symbolic link." >&2
         exit 1
@@ -46,10 +80,18 @@ for snap in $argv
     end
 
     ln -sfT $snap $vol.head
-    ln -sfT (pwd)/$snap $target/$vol.received
+    if set -q _flag_s
+        ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
+    else
+        ln -sfT (pwd)/$snap $target/$vol.received
+    end
 
     set vols $vols $vol
 
+end
+
+if set -q _flag_s
+    exit 0
 end
 
 set weekstamp (date +%Y-v%V-%u-%a-%H.%M.%S)
@@ -71,6 +113,6 @@ for vol in $vols
 
     if not test -e $snap
         btrfs subvolume snapshot -r $vol $snap
-        btrfs send -p $head $snap | btrfs receive $target
+        btrfs send -c $head $snap | btrfs receive $target
     end
 end
