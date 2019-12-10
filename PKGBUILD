@@ -3,7 +3,7 @@ pkgver=1.4
 pkgrel=1
 pkgdesc='Save before doing something stupid'
 arch=('any')
-license=('Unlicense')
+license=('BSD')
 depends=('btrfs-progs'
          'rsync'
          'pv'
