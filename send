@@ -2,28 +2,22 @@
 
 argparse --name=nsend -x bootstrap,received -N 1 's/ssh=' 'd/dest=' 'b/bootstrap' 'r/received=' 'p/progress=?' -- $argv
 
-set -x pid %self
-
-sudo -v
-
-while true; sudo -n true; sleep 1; kill -0 $pid 2>/dev/null || exit; end &
-
-while true
-    echo I am g..
-    sudo -n whoami || exit 1
-    sleep 10
-end
-
-exit
+set target (string trim -rc / $_flag_d)
 
 if set -q _flag_p
+    echo "using 'pv -W$_flag_p' to show progress"
     set pipe "| pv -W$_flag_p |"
 else
     set pipe "|"
 end
 
 if set -q _flag_s
-    set ssh "ssh $_flag_s"
+    if ssh -i /home/micke/.ssh/id_rsa $_flag_s test -d $target
+        set ssh "ssh -i /home/micke/.ssh/id_rsa $_flag_s sudo -n"
+    else
+        echo "Could not find '$target' on '$_flag_s'."
+        exit 1
+    end
 else
     set ssh ""
 end
@@ -38,7 +32,6 @@ if set -q _flag_r
     exit 1
 end
 
-set target (string trim -rc / $_flag_d)
 
 for snap in $argv
 
@@ -58,11 +51,11 @@ for snap in $argv
     end
     
     if test -s $head
-        eval btrfs send -p $head $snap $pipe $ssh btrfs sudo -n receive $target
+        eval btrfs send -p $head $snap $pipe $ssh btrfs receive $target
     else if set -q _flag_b
         echo "Bootstrapping by sending $snap..." >&2
 
-        eval btrfs send $snap $pipe $ssh btrfs sudo -n receive $target
+        eval btrfs send $snap $pipe $ssh btrfs receive $target
         ln -sfT $snap $vol.head
         if set -q _flag_s
             ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
