@@ -51,15 +51,23 @@ for snap in $argv
         set head $vol.ssh.$_flag_s
     else
         set head $target/$vol.received
+    end
 
-        if not test -s $head
-            echo "'$head' is not a symbolic link." >&2
-            set head $vol.head
-            echo "Trying $head instead." >&2
+    if not set -q _flag_b
+    and not test -L $head
+        echo "'$head' is not a symbolic link." >&2
+        if test -L $vol.head
+            read -lP "Do you want to use '$vol.head' instead? [y/N] " ok
+            switch $ok
+                case Y y J j
+                    set head $vol.head
+                case N n ''
+                    exit 1
+            end
         end
     end
     
-    if test -s $head
+    if test -L $head
         eval btrfs send -p $head $snap $pipe $ssh btrfs receive $target
     else if set -q _flag_b
         echo "Bootstrapping by sending $snap..." >&2
