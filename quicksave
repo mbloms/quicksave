@@ -2,6 +2,8 @@
 
 set weekstamp (date +%Y-v%V-%u-%a-%H.%M.%S)
 
+set partition_uuid 6254e738-c2f9-4224-bd7c-8926721470c0
+
 if set -q argv[1]
 for snap in $argv
     set snap (string trim -rc / $snap)
@@ -13,7 +15,7 @@ cd /
 pacman -Q > pacQ.lst
 pacman -Qm > pacQm.lst
 pacman -Qqe > pacQqe.lst
-mount -U 6254e738-c2f9-4224-bd7c-8926721470c0 /mnt
+mount -U $partition_uuid /mnt
 cd /mnt/
 rsync -a --del /boot/ \@boot/
 for snap in @root @var @boot @home

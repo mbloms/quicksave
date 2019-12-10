@@ -1,5 +1,5 @@
 pkgname=quicksave
-pkgver=1.4
+pkgver=2.0
 pkgrel=1
 pkgdesc='Save before doing something stupid'
 arch=('any')
