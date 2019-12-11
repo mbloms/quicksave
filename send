@@ -42,8 +42,8 @@ for snap in $argv
     end
 
     if set -q _flag_p
-        if test -f size.$snap
-            set size (cat size.$snap)
+        test -f size.$snap && set size (cat size.$snap)
+        if test $size -gt 0
             set pipe "| pv -W$_flag_p -s $size |"
         else
             set pipe "| pv -W$_flag_p |"
