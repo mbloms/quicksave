@@ -36,6 +36,8 @@ end
 
 for snap in $argv
 
+    set snap (string trim -rc / $snap)
+
     if not test -e $snap
         echo "'$snap' does not exist" >&2
         exit 1
@@ -43,7 +45,7 @@ for snap in $argv
 
     if set -q _flag_p
         test -f size.$snap && set size (cat size.$snap)
-        if test $size -gt 0
+        if test $size -gt 0 2>/dev/null
             set pipe "| pv -W$_flag_p -s $size |"
         else
             set pipe "| pv -W$_flag_p |"
