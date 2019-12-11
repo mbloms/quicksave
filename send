@@ -1,14 +1,11 @@
 #! /usr/bin/fish
 
-argparse --name=nsend -x bootstrap,received -N 1 's/ssh=' 'd/dest=' 'b/bootstrap' 'r/received=' 'p/progress=?' -- $argv
+argparse --name=nsend -x bootstrap,received -N 1 's/ssh=' 'd/dest=' 'b/bootstrap' 'r/received=' 'p/progress=?' 'n/dry-run' -- $argv
 
 set target (string trim -rc / $_flag_d)
 
 if set -q _flag_p
     echo "using 'pv -W$_flag_p' to show progress"
-    set pipe "| pv -W$_flag_p |"
-else
-    set pipe "|"
 end
 
 if set -q _flag_s
@@ -44,9 +41,23 @@ for snap in $argv
         exit 1
     end
 
+    if set -q _flag_p
+        if test -f size.$snap
+            set size (cat size.$snap)
+            set pipe "| pv -W$_flag_p -s $size |"
+        else
+            set pipe "| pv -W$_flag_p |"
+        end
+    else
+        set pipe "|"
+    end
+
     set vol (string split . $snap)[1]
     
-    if set -q _flag_s
+    if set -q _flag_n
+        # Use local head on dry-run
+        set head $vol.head
+    else if set -q _flag_s
         # We can't use symlinks over ssh
         set head $vol.ssh.$_flag_s
     else
@@ -64,23 +75,37 @@ for snap in $argv
                 case N n ''
                     exit 1
             end
+        else
+            echo "'$vol.head' is not a symbolic link either." >&2
+            exit 1
         end
     end
     
     if test -L $head
-        eval btrfs send -p $head $snap $pipe $ssh btrfs receive $target
+        if set -q _flag_n
+            eval "btrfs send -p $head $snap $pipe wc -c > size.$snap"
+        else
+            eval btrfs send -p $head $snap $pipe $ssh btrfs receive $target
+        end
     else if set -q _flag_b
         echo "Bootstrapping by sending $snap..." >&2
 
-        eval btrfs send $snap $pipe $ssh btrfs receive $target
-        ln -sfT $snap $vol.head
-        if set -q _flag_s
-            ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
+        if set -q _flag_n
+            eval "btrfs send $snap $pipe wc -c > size.$snap"
         else
-            ln -sfT (pwd)/$snap $target/$vol.received
+            eval btrfs send $snap $pipe $ssh btrfs receive $target
+        end
+
+        ln -sfT $snap $vol.head
+        if not set -q _flag_n
+            if set -q _flag_s
+                ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
+            else
+                ln -sfT (pwd)/$snap $target/$vol.received
+            end
         end
     else
-	echo "'$head' is not a symbolic link." >&2
+        echo "'$head' is not a symbolic link." >&2
         exit 1
     end
     
@@ -90,10 +115,12 @@ for snap in $argv
     end
 
     ln -sfT $snap $vol.head
-    if set -q _flag_s
-        ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
-    else
-        ln -sfT (pwd)/$snap $target/$vol.received
+    if not set -q _flag_n
+        if set -q _flag_s
+            ln -sfT (pwd)/$snap $vol.ssh.$_flag_s
+        else
+            ln -sfT (pwd)/$snap $target/$vol.received
+        end
     end
 
     set vols $vols $vol
@@ -101,6 +128,7 @@ for snap in $argv
 end
 
 if set -q _flag_s
+or set -q _flag_n
     exit 0
 end
 
